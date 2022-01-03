@@ -35,4 +35,9 @@ final class NullUser implements UserInterface
     {
         return;
     }
+
+    public function getUserIdentifier(): string
+    {
+        return '';
+    }
 }

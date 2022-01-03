@@ -27,7 +27,7 @@ final class SecurityTestController extends AbstractController
         $user = $this->getUser();
 
         return new Response(
-            sprintf('Hello, %s', (null !== $user) ? $user->getUsername() : 'guest')
+            sprintf('Hello, %s', (null !== $user) ? $user->getUserIdentifier() : 'guest')
         );
     }
 

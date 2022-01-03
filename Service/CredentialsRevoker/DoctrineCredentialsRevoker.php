@@ -26,7 +26,7 @@ final class DoctrineCredentialsRevoker implements CredentialsRevokerInterface
 
     public function revokeCredentialsForUser(UserInterface $user): void
     {
-        $userIdentifier = $user->getUsername();
+        $userIdentifier = $user->getUserIdentifier();
 
         $this->entityManager->createQueryBuilder()
             ->update(AccessToken::class, 'at')

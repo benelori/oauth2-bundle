@@ -14,7 +14,7 @@ final class UserConverter implements UserConverterInterface
     {
         $userEntity = new User();
         if ($user instanceof UserInterface) {
-            $userEntity->setIdentifier($user->getUsername());
+            $userEntity->setIdentifier($user->getUserIdentifier());
         }
 
         return $userEntity;
