@@ -50,7 +50,7 @@ final class OAuth2Authenticator extends AbstractAuthenticator
 
     public function supports(Request $request): bool
     {
-        return 0 === strpos($request->headers->get('Authorization', ''), 'Bearer ');
+        return true;
     }
 
     public function getCredentials(Request $request)
@@ -78,6 +78,13 @@ final class OAuth2Authenticator extends AbstractAuthenticator
         }
 
         $token = $this->psr7Request->getAttribute('oauth_user_id');
+
+        if ($token === '') {
+            $userLoader = function (string $identifier) {
+                return new NullUser();
+            };
+            return new SelfValidatingPassport(new UserBadge($token, $userLoader));
+        }
 
         return new SelfValidatingPassport(new UserBadge($token));
     }
