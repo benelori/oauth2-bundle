@@ -27,6 +27,7 @@ use Trikoder\Bundle\OAuth2Bundle\Manager\AuthorizationCodeManagerInterface;
 use Trikoder\Bundle\OAuth2Bundle\Manager\ClientManagerInterface;
 use Trikoder\Bundle\OAuth2Bundle\Manager\RefreshTokenManagerInterface;
 use Trikoder\Bundle\OAuth2Bundle\Manager\ScopeManagerInterface;
+use Trikoder\Bundle\OAuth2Bundle\Security\EntryPoint\OAuth2EntryPoint;
 use Trikoder\Bundle\OAuth2Bundle\Security\Guard\Authenticator\OAuth2Authenticator;
 use Trikoder\Bundle\OAuth2Bundle\Tests\Fixtures\FakeGrant;
 use Trikoder\Bundle\OAuth2Bundle\Tests\Fixtures\FixtureFactory;
@@ -162,19 +163,20 @@ final class TestKernel extends Kernel implements CompilerPassInterface
         ]);
 
         $container->loadFromExtension('security', [
+            'enable_authenticator_manager' => true,
             'firewalls' => [
                 'test' => [
                     'pattern' => '^/security-test',
                     'stateless' => true,
-                    'oauth2' => true,
+                    'custom_authenticators' => [
+                        OAuth2Authenticator::class,
+                    ],
                 ],
                 'guard-test' => [
                     'pattern' => '^/guard/security-test',
                     'stateless' => true,
-                    'guard' => [
-                        'authenticators' => [
-                            OAuth2Authenticator::class,
-                        ],
+                    'custom_authenticators' => [
+                        OAuth2Authenticator::class,
                     ],
                 ],
             ],
