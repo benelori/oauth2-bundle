@@ -14,7 +14,10 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Symfony\Component\Security\Guard\AuthenticatorInterface;
+use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\PassportInterface;
+use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Trikoder\Bundle\OAuth2Bundle\Security\Authentication\Token\OAuth2Token;
 use Trikoder\Bundle\OAuth2Bundle\Security\Authentication\Token\OAuth2TokenFactory;
 use Trikoder\Bundle\OAuth2Bundle\Security\Exception\InsufficientScopesException;
@@ -24,7 +27,7 @@ use Trikoder\Bundle\OAuth2Bundle\Security\User\NullUser;
  * @author Yonel Ceruto <yonelceruto@gmail.com>
  * @author Antonio J. García Lagar <aj@garcialagar.es>
  */
-final class OAuth2Authenticator implements AuthenticatorInterface
+final class OAuth2Authenticator extends AbstractAuthenticator
 {
     private $httpMessageFactory;
     private $resourceServer;
@@ -47,7 +50,7 @@ final class OAuth2Authenticator implements AuthenticatorInterface
 
     public function supports(Request $request): bool
     {
-        return 0 === strpos($request->headers->get('Authorization', ''), 'Bearer ');
+        return true;
     }
 
     public function getCredentials(Request $request)
@@ -68,13 +71,27 @@ final class OAuth2Authenticator implements AuthenticatorInterface
         return '' === $userIdentifier ? new NullUser() : $userProvider->loadUserByUsername($userIdentifier);
     }
 
-    public function checkCredentials($token, UserInterface $user): bool
+    public function authenticate(Request $request): PassportInterface
     {
-        return true;
+        if (null === $this->psr7Request) {
+            $this->getCredentials($request);
+        }
+
+        $token = $this->psr7Request->getAttribute('oauth_user_id');
+
+        if ($token === '') {
+            $userLoader = function (string $identifier) {
+                return new NullUser();
+            };
+            return new SelfValidatingPassport(new UserBadge($token, $userLoader));
+        }
+
+        return new SelfValidatingPassport(new UserBadge($token));
     }
 
-    public function createAuthenticatedToken(UserInterface $user, $providerKey): OAuth2Token
+    public function createAuthenticatedToken(PassportInterface $passport, $providerKey): TokenInterface
     {
+        $user = $passport->getUser();
         $tokenUser = $user instanceof NullUser ? null : $user;
 
         $oauth2Token = $this->oauth2TokenFactory->createOAuth2Token($this->psr7Request, $tokenUser, $providerKey);

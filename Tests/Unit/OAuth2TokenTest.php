@@ -34,7 +34,7 @@ final class OAuth2TokenTest extends TestCase
         $expectedRole = $rolePrefix . strtoupper($scopes[0]);
         $this->assertSame([$expectedRole], $token->getRoleNames());
 
-        $this->assertSame($user->getUsername(), $unserializedToken->getUser()->getUsername());
+        $this->assertSame($user->getUserIdentifier(), $unserializedToken->getUser()->getUserIdentifier());
         $this->assertFalse($unserializedToken->isAuthenticated());
     }
 }
